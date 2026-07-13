@@ -8,7 +8,7 @@ Built with plain HTML, CSS, and JavaScript—no framework, build process, accoun
 
 - Live local time, date, and time-sensitive greeting
 - Current weather, daily high and low, rain probability, and wind speed
-- Browser-based location detection with a readable city and country fallback
+- Explicit opt-in browser location detection or a privacy-friendly city selection
 - Custom website shortcuts stored locally in the browser
 - Geopolitics and finance headlines with publisher-provided summaries
 - Automatic news refresh and locally cached stories
@@ -26,7 +26,7 @@ cd custom-browser-dashboard
 
 Open `index.html` in a modern browser. The dashboard is entirely static, so it does not require dependency installation or a local server.
 
-The browser will request location permission when the weather widget loads. Weather remains unavailable if permission is declined, but the rest of the dashboard continues to work normally.
+On first use, the weather widget asks whether to use device location or a predefined city. Device location is never requested until the visitor explicitly selects that option.
 
 ## Use it as a Safari start page
 
@@ -57,12 +57,14 @@ The finance section is provided for general information and does not constitute 
 
 ## Weather and location privacy
 
-Location access is requested through the browser's standard Geolocation API and requires explicit permission. Coordinates are sent directly from the browser to:
+Visitors can select London, New York, Los Angeles, Vienna, or Tokyo without granting device-location permission. Vienna is selected by default. The choice is stored locally and can be changed from the weather card at any time.
+
+If a visitor explicitly chooses **Use my location**, access is requested through the browser's standard Geolocation API. Coordinates are reduced to three decimal places before being sent directly from the browser to:
 
 - [Open-Meteo](https://open-meteo.com/) for current conditions and the daily forecast
 - [BigDataCloud](https://www.bigdatacloud.com/) for the city and country name
 
-The project has no application server and does not store location data. If the place-name request fails, the weather widget displays rounded coordinates instead.
+The project has no application server and does not store location data remotely. The selected mode or city is retained in the visitor's browser using `localStorage`. If the place-name request fails, the weather widget displays rounded coordinates instead.
 
 ## Project structure
 

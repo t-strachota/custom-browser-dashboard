@@ -1,12 +1,20 @@
 const timeElement = document.querySelector("#time");
 const dateElement = document.querySelector("#date");
 const welcomeElement = document.querySelector("#welcome");
+const weatherChoice = document.querySelector("#weather-choice");
+const cityPicker = document.querySelector("#city-picker");
+const weatherCitySelect = document.querySelector("#weather-city");
 const weatherLoading = document.querySelector("#weather-loading");
 const weatherError = document.querySelector("#weather-error");
 const weatherErrorMessage = document.querySelector("#weather-error-message");
 const weatherContent = document.querySelector("#weather-content");
 const refreshWeatherButton = document.querySelector("#refresh-weather");
 const retryWeatherButton = document.querySelector("#retry-weather");
+const useDeviceLocationButton = document.querySelector("#use-device-location");
+const showCityPickerButton = document.querySelector("#show-city-picker");
+const backToLocationChoiceButton = document.querySelector("#back-to-location-choice");
+const chooseCityAfterErrorButton = document.querySelector("#choose-city-after-error");
+const changeWeatherLocationButton = document.querySelector("#change-weather-location");
 const shortcutList = document.querySelector("#shortcut-list");
 const shortcutEmpty = document.querySelector("#shortcut-empty");
 const addShortcutButton = document.querySelector("#add-shortcut");
@@ -21,6 +29,14 @@ const newsUpdated = document.querySelector("#news-updated");
 
 const SHORTCUTS_KEY = "personal-dashboard.shortcuts.v1";
 const NEWS_CACHE_KEY = "personal-dashboard.news.v1";
+const WEATHER_PREFERENCE_KEY = "personal-dashboard.weather-location.v1";
+const WEATHER_CITIES = {
+  london: { name: "London", latitude: 51.5074, longitude: -0.1278 },
+  "new-york": { name: "New York", latitude: 40.7128, longitude: -74.006 },
+  "los-angeles": { name: "Los Angeles", latitude: 34.0522, longitude: -118.2437 },
+  vienna: { name: "Vienna", latitude: 48.2082, longitude: 16.3738 },
+  tokyo: { name: "Tokyo", latitude: 35.6762, longitude: 139.6503 },
+};
 const NEWS_FEEDS = {
   geopolitics: {
     element: document.querySelector("#geopolitics-feed"),
@@ -108,6 +124,8 @@ updateDashboard();
 setInterval(updateDashboard, 1_000);
 
 function setWeatherState(state, message = "") {
+  weatherChoice.hidden = state !== "choice";
+  cityPicker.hidden = state !== "city";
   weatherLoading.hidden = state !== "loading";
   weatherError.hidden = state !== "error";
   weatherContent.hidden = state !== "ready";
@@ -133,8 +151,8 @@ function getCurrentPosition() {
 
 async function getPlaceName(latitude, longitude) {
   const params = new URLSearchParams({
-    latitude: latitude.toFixed(5),
-    longitude: longitude.toFixed(5),
+    latitude: latitude.toFixed(3),
+    longitude: longitude.toFixed(3),
     localityLanguage: navigator.language || "en",
   });
 
@@ -195,25 +213,64 @@ function locationErrorMessage(error) {
   return error?.message || "Your location and weather could not be loaded.";
 }
 
-async function loadWeather() {
+let activeWeatherPreference = null;
+
+async function loadWeather(preference = activeWeatherPreference, remember = false) {
+  if (!preference) {
+    setWeatherState("choice");
+    return;
+  }
+
+  activeWeatherPreference = preference;
   setWeatherState("loading");
 
   try {
-    const position = await getCurrentPosition();
-    const { latitude, longitude } = position.coords;
-    const [placeName, forecast] = await Promise.all([
-      getPlaceName(latitude, longitude),
-      getWeather(latitude, longitude),
-    ]);
+    let latitude;
+    let longitude;
+    let placeName;
+
+    if (preference.mode === "device") {
+      const position = await getCurrentPosition();
+      latitude = Number(position.coords.latitude.toFixed(3));
+      longitude = Number(position.coords.longitude.toFixed(3));
+      placeName = await getPlaceName(latitude, longitude);
+    } else {
+      const city = WEATHER_CITIES[preference.city];
+      if (!city) throw new Error("That city is not available.");
+      ({ latitude, longitude } = city);
+      placeName = city.name;
+    }
+
+    const forecast = await getWeather(latitude, longitude);
+    if (remember) writeStorage(WEATHER_PREFERENCE_KEY, preference);
     renderWeather(placeName, forecast);
   } catch (error) {
     setWeatherState("error", locationErrorMessage(error));
   }
 }
 
-refreshWeatherButton.addEventListener("click", loadWeather);
-retryWeatherButton.addEventListener("click", loadWeather);
-loadWeather();
+function showCitySelection() {
+  weatherCitySelect.value = activeWeatherPreference?.city || "vienna";
+  setWeatherState("city");
+}
+
+useDeviceLocationButton.addEventListener("click", () => {
+  loadWeather({ mode: "device" }, true);
+});
+showCityPickerButton.addEventListener("click", showCitySelection);
+chooseCityAfterErrorButton.addEventListener("click", showCitySelection);
+backToLocationChoiceButton.addEventListener("click", () => setWeatherState("choice"));
+cityPicker.addEventListener("submit", (event) => {
+  event.preventDefault();
+  loadWeather({ mode: "city", city: weatherCitySelect.value }, true);
+});
+changeWeatherLocationButton.addEventListener("click", () => {
+  activeWeatherPreference = null;
+  removeStorage(WEATHER_PREFERENCE_KEY);
+  setWeatherState("choice");
+});
+refreshWeatherButton.addEventListener("click", () => loadWeather());
+retryWeatherButton.addEventListener("click", () => loadWeather());
 
 function readStorage(key, fallback) {
   try {
@@ -229,6 +286,26 @@ function writeStorage(key, value) {
   } catch {
     // The dashboard still works when private browsing blocks local storage.
   }
+}
+
+function removeStorage(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // Ignore storage restrictions and continue with the in-memory choice.
+  }
+}
+
+const storedWeatherPreference = readStorage(WEATHER_PREFERENCE_KEY, null);
+const hasValidWeatherPreference =
+  storedWeatherPreference?.mode === "device" ||
+  (storedWeatherPreference?.mode === "city" && WEATHER_CITIES[storedWeatherPreference.city]);
+
+if (hasValidWeatherPreference) {
+  activeWeatherPreference = storedWeatherPreference;
+  loadWeather(storedWeatherPreference);
+} else {
+  setWeatherState("choice");
 }
 
 let shortcuts = readStorage(SHORTCUTS_KEY, []);

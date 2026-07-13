@@ -40,11 +40,46 @@
       </section>
 
       <section class="panel weather" aria-labelledby="weather-location">
-        <div id="weather-loading" class="weather-state" role="status">
+        <div id="weather-choice" class="weather-consent">
+          <div>
+            <p class="section-label">Local weather</p>
+            <h2>How should we choose your forecast?</h2>
+            <p class="weather-consent-copy">
+              Device location gives the most relevant forecast. Your coordinates are reduced in precision,
+              then shared with Open-Meteo and BigDataCloud only after you choose this option.
+            </p>
+            <div class="weather-choice-actions">
+              <button id="use-device-location" class="choice-button" type="button">Use my location</button>
+              <button id="show-city-picker" class="choice-button choice-button-secondary" type="button">Choose a city</button>
+            </div>
+          </div>
+        </div>
+
+        <form id="city-picker" class="city-picker" hidden>
+          <div>
+            <p class="section-label">Location without GPS</p>
+            <h2>Choose a city</h2>
+            <p class="weather-consent-copy">This uses the selected city's public coordinates and does not request device location.</p>
+          </div>
+          <label for="weather-city">Forecast city</label>
+          <select id="weather-city" name="city">
+            <option value="london">London</option>
+            <option value="new-york">New York</option>
+            <option value="los-angeles">Los Angeles</option>
+            <option value="vienna" selected>Vienna</option>
+            <option value="tokyo">Tokyo</option>
+          </select>
+          <div class="weather-choice-actions">
+            <button class="choice-button" type="submit">Use this city</button>
+            <button id="back-to-location-choice" class="choice-button choice-button-secondary" type="button">Back</button>
+          </div>
+        </form>
+
+        <div id="weather-loading" class="weather-state" role="status" hidden>
           <span class="weather-spinner" aria-hidden="true"></span>
           <div>
-            <p>Finding your location…</p>
-            <small>Safari may ask for permission.</small>
+            <p>Loading your forecast…</p>
+            <small>Safari may ask for location permission.</small>
           </div>
         </div>
 
@@ -53,7 +88,10 @@
             <p id="weather-error-message">Weather is unavailable.</p>
             <small>Your clock will keep working normally.</small>
           </div>
-          <button id="retry-weather" class="text-button" type="button">Try again</button>
+          <div class="weather-error-actions">
+            <button id="retry-weather" class="text-button" type="button">Try again</button>
+            <button id="choose-city-after-error" class="text-button text-button-secondary" type="button">Choose a city</button>
+          </div>
         </div>
 
         <div id="weather-content" hidden>
@@ -62,7 +100,10 @@
               <p class="section-label">Today in</p>
               <h2 id="weather-location">Your location</h2>
             </div>
-            <span id="weather-icon" class="weather-icon" aria-hidden="true">–</span>
+            <div class="weather-heading-actions">
+              <button id="change-weather-location" class="location-change-button" type="button">Change location</button>
+              <span id="weather-icon" class="weather-icon" aria-hidden="true">–</span>
+            </div>
           </div>
 
           <div class="weather-summary">
