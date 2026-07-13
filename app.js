@@ -12,6 +12,7 @@ const refreshWeatherButton = document.querySelector("#refresh-weather");
 const retryWeatherButton = document.querySelector("#retry-weather");
 const useDeviceLocationButton = document.querySelector("#use-device-location");
 const showCityPickerButton = document.querySelector("#show-city-picker");
+const useSelectedCityButton = document.querySelector("#use-selected-city");
 const backToLocationChoiceButton = document.querySelector("#back-to-location-choice");
 const chooseCityAfterErrorButton = document.querySelector("#choose-city-after-error");
 const changeWeatherLocationButton = document.querySelector("#change-weather-location");
@@ -149,6 +150,17 @@ function getCurrentPosition() {
   });
 }
 
+async function fetchWithTimeout(url, timeout = 10_000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function getPlaceName(latitude, longitude) {
   const params = new URLSearchParams({
     latitude: latitude.toFixed(3),
@@ -157,8 +169,9 @@ async function getPlaceName(latitude, longitude) {
   });
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?${params}`,
+      6_000,
     );
     if (!response.ok) throw new Error("Location lookup failed");
 
@@ -180,7 +193,9 @@ async function getWeather(latitude, longitude) {
     timezone: "auto",
     forecast_days: "1",
   });
-  const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+  const response = await fetchWithTimeout(
+    `https://api.open-meteo.com/v1/forecast?${params}`,
+  );
 
   if (!response.ok) throw new Error("The weather service did not respond.");
   return response.json();
@@ -227,21 +242,24 @@ async function loadWeather(preference = activeWeatherPreference, remember = fals
   try {
     let latitude;
     let longitude;
-    let placeName;
+    let placeNamePromise;
 
     if (preference.mode === "device") {
       const position = await getCurrentPosition();
       latitude = Number(position.coords.latitude.toFixed(3));
       longitude = Number(position.coords.longitude.toFixed(3));
-      placeName = await getPlaceName(latitude, longitude);
+      placeNamePromise = getPlaceName(latitude, longitude);
     } else {
       const city = WEATHER_CITIES[preference.city];
       if (!city) throw new Error("That city is not available.");
       ({ latitude, longitude } = city);
-      placeName = city.name;
+      placeNamePromise = Promise.resolve(city.name);
     }
 
-    const forecast = await getWeather(latitude, longitude);
+    const [placeName, forecast] = await Promise.all([
+      placeNamePromise,
+      getWeather(latitude, longitude),
+    ]);
     if (remember) writeStorage(WEATHER_PREFERENCE_KEY, preference);
     renderWeather(placeName, forecast);
   } catch (error) {
@@ -260,8 +278,7 @@ useDeviceLocationButton.addEventListener("click", () => {
 showCityPickerButton.addEventListener("click", showCitySelection);
 chooseCityAfterErrorButton.addEventListener("click", showCitySelection);
 backToLocationChoiceButton.addEventListener("click", () => setWeatherState("choice"));
-cityPicker.addEventListener("submit", (event) => {
-  event.preventDefault();
+useSelectedCityButton.addEventListener("click", () => {
   loadWeather({ mode: "city", city: weatherCitySelect.value }, true);
 });
 changeWeatherLocationButton.addEventListener("click", () => {

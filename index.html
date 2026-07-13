@@ -61,7 +61,7 @@
           </div>
         </div>
 
-        <form id="city-picker" class="city-picker" hidden>
+        <div id="city-picker" class="city-picker" hidden>
           <div>
             <p class="section-label">Location without GPS</p>
             <h2>Choose a city</h2>
@@ -76,10 +76,10 @@
             <option value="tokyo">Tokyo</option>
           </select>
           <div class="weather-choice-actions">
-            <button class="choice-button" type="submit">Use this city</button>
+            <button id="use-selected-city" class="choice-button" type="button">Use this city</button>
             <button id="back-to-location-choice" class="choice-button choice-button-secondary" type="button">Back</button>
           </div>
-        </form>
+        </div>
 
         <div id="weather-loading" class="weather-state" role="status" hidden>
           <span class="weather-spinner" aria-hidden="true"></span>
