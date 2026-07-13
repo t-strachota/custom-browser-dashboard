@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10151f" />
+    <title>My Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="topbar">
+        <p class="eyebrow">Personal dashboard</p>
+        <button id="refresh-weather" class="refresh-button" type="button" hidden>
+          <span aria-hidden="true">↻</span>
+          Refresh weather
+        </button>
+      </header>
+
+      <h1 id="welcome">Welcome back.</h1>
+
+      <section class="panel shortcuts" aria-labelledby="shortcuts-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-label">Your everyday places</p>
+            <h2 id="shortcuts-title">Quick access</h2>
+          </div>
+          <button id="add-shortcut" class="small-button" type="button">
+            <span aria-hidden="true">＋</span>
+            Add website
+          </button>
+        </div>
+        <div id="shortcut-list" class="shortcut-list"></div>
+        <button id="shortcut-empty" class="shortcut-empty" type="button">
+          <span aria-hidden="true">＋</span>
+          <strong>Add your first website</strong>
+          <small>Your shortcuts stay in this browser.</small>
+        </button>
+      </section>
+
+      <section class="panel weather" aria-labelledby="weather-location">
+        <div id="weather-loading" class="weather-state" role="status">
+          <span class="weather-spinner" aria-hidden="true"></span>
+          <div>
+            <p>Finding your location…</p>
+            <small>Safari may ask for permission.</small>
+          </div>
+        </div>
+
+        <div id="weather-error" class="weather-state weather-error" hidden>
+          <div>
+            <p id="weather-error-message">Weather is unavailable.</p>
+            <small>Your clock will keep working normally.</small>
+          </div>
+          <button id="retry-weather" class="text-button" type="button">Try again</button>
+        </div>
+
+        <div id="weather-content" hidden>
+          <div class="weather-heading">
+            <div>
+              <p class="section-label">Today in</p>
+              <h2 id="weather-location">Your location</h2>
+            </div>
+            <span id="weather-icon" class="weather-icon" aria-hidden="true">–</span>
+          </div>
+
+          <div class="weather-summary">
+            <p class="temperature"><span id="current-temperature">--</span><sup>°</sup></p>
+            <div>
+              <p id="weather-description" class="condition">Loading…</p>
+              <p class="range">
+                High <span id="temperature-high">--°</span>
+                <span aria-hidden="true">·</span>
+                Low <span id="temperature-low">--°</span>
+              </p>
+            </div>
+          </div>
+
+          <dl class="weather-details">
+            <div>
+              <dt>Chance of rain</dt>
+              <dd id="rain-chance">--%</dd>
+            </div>
+            <div>
+              <dt>Wind</dt>
+              <dd id="wind-speed">-- km/h</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="clock" aria-label="Current time and date" aria-live="polite">
+        <time id="time">--:--</time>
+        <time id="date">Loading today’s date…</time>
+      </section>
+
+      <section class="news" aria-labelledby="news-title">
+        <div class="section-heading news-heading">
+          <div>
+            <p class="section-label">News &amp; updates</p>
+            <h2 id="news-title">The world at a glance</h2>
+          </div>
+          <button id="refresh-news" class="small-button" type="button">
+            <span aria-hidden="true">↻</span>
+            Refresh
+          </button>
+        </div>
+
+        <div class="news-grid">
+          <article class="news-column" aria-labelledby="geopolitics-title">
+            <div class="feed-heading">
+              <div>
+                <span class="topic-dot topic-dot-world" aria-hidden="true"></span>
+                <h3 id="geopolitics-title">Geopolitics</h3>
+              </div>
+              <span>BBC World</span>
+            </div>
+            <div id="geopolitics-feed" class="news-feed" aria-live="polite">
+              <div class="feed-loading"><span class="weather-spinner" aria-hidden="true"></span>Loading updates…</div>
+            </div>
+          </article>
+
+          <article class="news-column" aria-labelledby="finance-title">
+            <div class="feed-heading">
+              <div>
+                <span class="topic-dot topic-dot-finance" aria-hidden="true"></span>
+                <h3 id="finance-title">Finance</h3>
+              </div>
+              <span>CNBC Finance</span>
+            </div>
+            <div id="finance-feed" class="news-feed" aria-live="polite">
+              <div class="feed-loading"><span class="weather-spinner" aria-hidden="true"></span>Loading updates…</div>
+            </div>
+          </article>
+        </div>
+
+        <footer class="news-footer">
+          <span id="news-updated">Fetching the latest coverage…</span>
+          <span>Headlines link to their original publishers · Not financial advice</span>
+        </footer>
+      </section>
+    </main>
+
+    <dialog id="shortcut-dialog" class="shortcut-dialog">
+      <form id="shortcut-form" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="section-label">Quick access</p>
+            <h2>Add a website</h2>
+          </div>
+          <button id="close-shortcut-dialog" class="icon-button" type="button" aria-label="Close">×</button>
+        </div>
+
+        <label>
+          Name
+          <input id="shortcut-name" name="name" type="text" placeholder="e.g. Gmail" maxlength="30" required />
+        </label>
+        <label>
+          Website address
+          <input id="shortcut-url" name="url" type="text" inputmode="url" placeholder="e.g. gmail.com" required />
+        </label>
+        <p id="shortcut-form-error" class="form-error" role="alert" hidden></p>
+        <button class="submit-button" type="submit">Add to quick access</button>
+      </form>
+    </dialog>
+  </body>
+</html>
