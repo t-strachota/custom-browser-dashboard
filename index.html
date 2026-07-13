@@ -18,7 +18,13 @@
         </button>
       </header>
 
-      <h1 id="welcome">Welcome back.</h1>
+      <section class="hero" aria-label="Welcome and current time">
+        <h1 id="welcome">Welcome back.</h1>
+        <div class="clock" aria-label="Current time and date" aria-live="polite">
+          <time id="time">--:--</time>
+          <time id="date">Loading today’s date…</time>
+        </div>
+      </section>
 
       <section class="panel shortcuts" aria-labelledby="shortcuts-title">
         <div class="section-heading">
@@ -129,11 +135,6 @@
             </div>
           </dl>
         </div>
-      </section>
-
-      <section class="clock" aria-label="Current time and date" aria-live="polite">
-        <time id="time">--:--</time>
-        <time id="date">Loading today’s date…</time>
       </section>
 
       <section class="news" aria-labelledby="news-title">
